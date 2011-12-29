@@ -48,12 +48,15 @@ class FrontPage(webapp.RequestHandler):
             
             if lsubject == "Add New Function":
                 Function.CreateNew(user)
+                lfinishurl = "/frontpage"
             elif lsubject == "Search":
                 lsearchtext = self.request.get("functionnamesearch", None)
                 if lsearchtext:
                     lfinishurl = "/frontpage?search=%s" % lsearchtext
                 else:
                     lfinishurl = "/frontpage"
+            elif lsubject == "Clear":
+                lfinishurl = "/frontpage"
                 
         self.redirect(lfinishurl)
             

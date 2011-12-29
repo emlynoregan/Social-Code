@@ -142,7 +142,7 @@ class Function(polymodel.PolyModel):
                         raise Exception("Assert failed.")
                     
             # "__builtins__":None, 
-            lscope = {"log":xlog, "check":xassert}
+            lscope = {"__builtins__":None, "log":xlog, "check":xassert}
 
             self.CheckImports()
             
