@@ -1,6 +1,4 @@
 '''
-Created on Nov 12, 2011
-
 @author: emlyn
 '''
 from google.appengine.ext import db
