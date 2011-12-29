@@ -1,0 +1,12 @@
+application: emlynhrdtest
+version: socialcode
+runtime: python27
+api_version: 1
+threadsafe: true
+
+builtins:
+- deferred: on
+
+handlers:
+- url: /.*
+  script: main.app

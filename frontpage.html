@@ -1,0 +1,48 @@
+<html>
+  <head>
+    <title>Front Page</title>
+  </head>
+  <body>
+  	<div>
+  	<a href="/">
+  	<h1>
+  	Front Page for Social Code
+  	</h1>
+  	</a>
+  	{% if not signedin %}
+  		<p>You are not logged in. <a href="{{loginurl}}">Login</a>
+  	{% else %}
+  		<p>You are logged in as {{nickname}}. <a href="{{logouturl}}">Logout</a>
+  	
+		<form method="post">
+		  	<div>
+		  		<h2>Functions</h2>
+		  		<div>
+					<input class="addnewbutton" type="submit" name="subject" value="Add New Function">
+				</div>
+				<div>
+					Search by Function Name (supports prefixes):
+			  		<input class="functionnamesearch" type="text" name="functionnamesearch" value="{{search}}">
+					<input class="searchbutton" type="submit" name="subject" value="Search">
+				</div>
+		  		{% for function in functions %}
+		  			<div>
+		  				<a href="/function?id={{function.key.id}}">{{function.name}} (last updated by {{function.lastupdatedby.nickname}})</a>
+		  				<span>
+		  				{% if function.LatestRun %}
+		  				  {% if function.LatestRun.success %}
+		  				    Success
+		  				  {%else%}
+		  				    {{function.LatestRun.errormessage}}
+		  				  {% endif%}
+		  				{% else %}
+		  				  Hasn't been run
+		  				{% endif %}
+		  				</span>
+		  			</div>
+		  		{% endfor %}
+		  	</div>
+		</form>
+  	{% endif %}
+  </body>
+</html>
