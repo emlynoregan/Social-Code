@@ -37,11 +37,14 @@ class Function(polymodel.PolyModel):
         return retval
     
     @classmethod
-    def CreateNew(cls, aUser):
-        lname = cls.GenerateName(aUser)
-        retval = cls(name = lname, creator = aUser, lastupdatedby = aUser, searchname=lname.upper())
-        retval.calcput()
-        return retval
+    def CreateNew(cls, aName, aUser):
+        if cls.NameExists(aName):
+            raise Exception("Name already exists")
+        else:
+#            lname = cls.GenerateName(aUser)
+            retval = cls(name = aName, creator = aUser, lastupdatedby = aUser, searchname=aName.upper())
+            retval.calcput()
+            return retval
     
     @classmethod
     def GetFunctions(cls, aSearch):
@@ -134,7 +137,7 @@ class Function(polymodel.PolyModel):
                 logitem.message = aMessage
                 logitem.put()
 
-            def xassert(aBool, aMessage):
+            def xcheck(aBool, aMessage=None):
                 if not aBool:
                     if aMessage:
                         raise Exception("Assert failed: %s" % aMessage)
@@ -142,7 +145,7 @@ class Function(polymodel.PolyModel):
                         raise Exception("Assert failed.")
                     
             # "__builtins__":None, 
-            lscope = {"__builtins__":None, "log":xlog, "check":xassert}
+            lscope = {"__builtins__":None, "log":xlog, "check":xcheck, "str": str}
 
             self.CheckImports()
             

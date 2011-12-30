@@ -1,49 +1,60 @@
 <html>
   <head>
-    <title>Front Page</title>
+    <title>Social Code</title>
   </head>
   <body>
   	<div>
   	<a href="/">
   	<h1>
-  	Front Page for Social Code
+  	Social Code
   	</h1>
   	</a>
+  	<p>
+  	Python code, native to the cloud.
+  	</p>
+  	
   	{% if not signedin %}
   		<p>You are not logged in. <a href="{{loginurl}}">Login</a>
   	{% else %}
   		<p>You are logged in as {{nickname}}. <a href="{{logouturl}}">Logout</a>
-  	
-		<form method="post">
-		  	<div>
-		  		<h2>Functions</h2>
-		  		<div>
-					<input class="addnewbutton" type="submit" name="subject" value="Add New Function">
-				</div>
-				<div>
-					Search by Function Name (supports prefixes):
-			  		<input class="functionnamesearch" type="text" name="functionnamesearch" value="{{search}}">
-					<input class="searchbutton" type="submit" name="subject" value="Search">
-					<input class="searchbutton" type="submit" name="subject" value="Clear">
-				</div>
-		  		{% for function in functions %}
-		  			<div>
-		  				<a href="/function?id={{function.key.id}}">{{function.name}} (last updated by {{function.lastupdatedby.nickname}})</a>
-		  				<span>
-		  				{% if function.LatestRun %}
-		  				  {% if function.LatestRun.success %}
-		  				    Success
-		  				  {%else%}
-		  				    {{function.LatestRun.errormessage}}
-		  				  {% endif%}
-		  				{% else %}
-		  				  Hasn't been run
-		  				{% endif %}
-		  				</span>
-		  			</div>
-		  		{% endfor %}
-		  	</div>
-		</form>
   	{% endif %}
+  	
+	<form method="post">
+	  	<div>
+	  		<h2>Functions</h2>
+	  		{% if err %}
+	  		<div style="color:red;">{{err}}</div>
+	  		{% endif %}
+	  		<div style="padding-bottom: 15px;">
+	  		    <div>
+	  		    	Create a new function by entering a name here and clicking "Add New Function"
+	  		    </div>
+		  		<input class="newfunctionname" type="text" size=40 name="newfunctionname">
+				<input class="addnewbutton" type="submit" name="subject" value="Add New Function">
+			</div>
+	  		<div style="padding-bottom: 15px;">
+				Search by Function Name (supports prefixes):
+		  		<input class="functionnamesearch" type="text" name="functionnamesearch" value="{{search}}">
+				<input class="searchbutton" type="submit" name="subject" value="Search">
+				<input class="searchbutton" type="submit" name="subject" value="Clear">
+			</div>
+	  		{% for function in functions %}
+	  			<div>
+	  				<a href="/function?id={{function.key.id}}">{{function.name}} (last updated by {% if function.lastupdatedby %}{{function.lastupdatedby.nickname}}{%else%}anonymous{%endif%})</a>
+	  				<span>
+	  				{% if function.LatestRun %}
+	  				  {% if function.LatestRun.success %}
+	  				    Success
+	  				  {%else%}
+	  				    {{function.LatestRun.errormessage}}
+	  				  {% endif%}
+	  				{% else %}
+	  				  Hasn't been run
+	  				{% endif %}
+	  				</span>
+	  			</div>
+	  		{% endfor %}
+	  	</div>
+	</form>
   </body>
 </html>

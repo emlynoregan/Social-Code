@@ -6,19 +6,24 @@
   	<div>
   	<a href="/function?id={{function.key.id}}">
   	</a>
-	<p>You are logged in as {{nickname}}. <a href="{{logouturl}}">Logout</a>
+  	{% if not signedin %}
+  		<p>You are not logged in. <a href="{{loginurl}}">Login</a>
+  	{% else %}
+  		<p>You are logged in as {{nickname}}. <a href="{{logouturl}}">Logout</a>
+  	{% endif %}
  	
 	<form method="post" action="/function?id={{function.key.id}}">
 	  	<div style="text-align:center;">
 	  		<h4><a href="/">Back to main page</a></h4>
-	  		<h2>Function: 
-	  		<input class="functionnamebox" type="text" name="functionnamebox" value="{{function.name}}">
-			<input class="submitbutton" type="submit" name="subject" value="Rename Function">
+	  		<h2>Function: {{function.name}}
 			<input class="submitbutton" type="submit" name="subject" value="Delete" onclick="return confirm('Are you sure you want to delete this function?');">
 	  		</h2>
 	  		<div>
 			<input class="submitbutton" type="submit" name="subject" value="Save and Run!">
 			</div>
+	  		{% if err %}
+	  		<div style="color:red;">{{err}}</div>
+	  		{% endif %}
 	  		<div>
 	  			<div style="float: left; width: 50%;">
 		  			<h3>Implementation</h3>
@@ -52,7 +57,7 @@
 	  						{{functionrun.errormessage}}
 	  					{%endif%}
 	  					</b>
-	  					<i>{{functionrun.initiated}} ({{functionrun.initiator.nickname}})</i>
+	  					<i>{{functionrun.initiated}} ({% if functionrun.initiator %}{{functionrun.initiator.nickname}}{%else%}anonymous{%endif%})</i>
 	  					<div style="position:relative;align:center;">
 		  					<div style="border-style:solid;border-width:1px;width:600px; margin:0 auto;">
 			  					{% for logitem in functionrun.TopLogItems %}
