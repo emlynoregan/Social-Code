@@ -19,7 +19,29 @@ class Function(polymodel.PolyModel):
     dependson = db.StringListProperty()
     dependedonby = db.StringListProperty()
 
+    def AddSelfToDependsOns(self):
+        for ldependedonfunction in self.GetDependsOn:   
+            if not ldependedonfunction.dependedonby:
+                ldependedonfunction.dependedonby = []
+            if not self.name in ldependedonfunction.dependedonby:
+                ldependedonfunction.dependedonby.append(self.name)
+                if self.key() == ldependedonfunction.key():
+                    self.dependedonby = ldependedonfunction.dependedonby
+                ldependedonfunction.put()
+        
+    def RemoveSelfFromDependsOns(self):
+        for ldependedonfunction in self.GetDependsOn:   
+            if ldependedonfunction.dependedonby:
+                if self.name in ldependedonfunction.dependedonby:
+                    ldependedonfunction.dependedonby.remove(self.name)
+                    if self.key() == ldependedonfunction.key():
+                        self.dependedonby = ldependedonfunction.dependedonby
+                    ldependedonfunction.put()
+
     def calcput(self):
+        # should do something smarter with just removing what needs removing
+        self.RemoveSelfFromDependsOns()
+
         if self.name:
             self.searchname = self.name.upper()
         ldependson = self.GetDependsOnFromInput(self.tests)
@@ -28,36 +50,11 @@ class Function(polymodel.PolyModel):
         self.dependson = ldependson
         self.put()
 
-        for ldependedonfunction in self.GetDependsOn:   
-            if not ldependedonfunction.dependedonby:
-                ldependedonfunction.dependedonby = []
-            if not self.name in ldependedonfunction.dependedonby:
-                ldependedonfunction.dependedonby.append(self.name)
-            ldependedonfunction.calcput()
-                 
-#        for ldependsItem in ldependson:
-#            ldependedonfunction = self.GetByName(ldependsItem)
-#            if ldependedonfunction:
-#                if not ldependedonfunction.dependedonby:
-#                    ldependedonfunction.dependedonby = []
-#                if not self.name in ldependedonfunction.dependedonby:
-#                    ldependedonfunction.dependedonby.append(self.name)
-#                ldependedonfunction.calcput()
+        self.AddSelfToDependsOns()
 
     def calcdelete(self):
-        for ldependedonfunction in self.GetDependsOn:
-            if ldependedonfunction.dependedonby:
-                if not self.name in ldependedonfunction.dependedonby:
-                    ldependedonfunction.dependedonby.remove(self.name)
-                ldependedonfunction.calcput()
+        self.RemoveSelfFromDependsOns()
                
-#        for ldependsItem in self.dependson:
-#            ldependedonfunction = self.GetByName(ldependsItem)
-#            if ldependedonfunction:
-#                if ldependedonfunction.dependedonby:
-#                    if not self.name in ldependedonfunction.dependedonby:
-#                        ldependedonfunction.dependedonby.remove(self.name)
-#                    ldependedonfunction.calcput()
         self.delete()
         
     @classmethod
@@ -125,12 +122,13 @@ class Function(polymodel.PolyModel):
     
     def CheckDependencies(self):
         for ldependsOn in self.GetDependsOn:
-            llatestRun = ldependsOn.LatestRun
-            if llatestRun:
-                if not llatestRun.success:
-                    raise Exception("Import '%s' fails: %s" % (ldependsOn.name, llatestRun.errormessage))
-            else:
-                raise Exception("Import '%s' has never been run." % (ldependsOn.name))
+            if ldependsOn.key() != self.key():
+                llatestRun = ldependsOn.LatestRun
+                if llatestRun:
+                    if not llatestRun.success:
+                        raise Exception("Import '%s' fails: %s" % (ldependsOn.name, llatestRun.errormessage))
+                else:
+                    raise Exception("Import '%s' has never been run." % (ldependsOn.name))
     
     @property
     def GetDependsOn(self):
@@ -152,9 +150,10 @@ class Function(polymodel.PolyModel):
         
     def AddDependsOnToDictionary(self, aDictionary):
         for ldependson in self.GetDependsOn:
-            if not ldependson.searchname in aDictionary:
-                aDictionary[ldependson.searchname] = ldependson
-                aDictionary = ldependson.AddDependsOnToDictionary(aDictionary)
+            if ldependson.key() != self.key():
+                if not ldependson.searchname in aDictionary:
+                    aDictionary[ldependson.searchname] = ldependson
+                    aDictionary = ldependson.AddDependsOnToDictionary(aDictionary)
         return aDictionary
     
     def GetDependsOnCode(self, aDictionary):
