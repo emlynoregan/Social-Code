@@ -40,9 +40,13 @@
 	  			<div style="clear: both;" />
 	  		</div>
 	  		<div>
-	  			<h3>Imports</h3>
-	  			{% for import in function.GetImports %}
-	  				<div><a href="/function?id={{import.key.id}}">{{import.name}}</a></div>
+	  			<h3>Depends On</h3>
+	  			{% for item in function.GetDependsOn %}
+	  				<div><a href="/function?id={{item.key.id}}">{{item.name}}</a></div>
+	  			{% endfor %}
+	  			<h3>Depended On By</h3>
+	  			{% for item in function.GetDependedOnBy %}
+	  				<div><a href="/function?id={{item.key.id}}">{{item.name}}</a></div>
 	  			{% endfor %}
 	  		</div>
 	  		<div>

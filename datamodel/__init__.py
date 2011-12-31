@@ -16,24 +16,63 @@ class Function(polymodel.PolyModel):
     searchname = db.StringProperty(required=True)
     code = db.TextProperty()
     tests = db.TextProperty()
-    imports = db.StringListProperty()
+    dependson = db.StringListProperty()
+    dependedonby = db.StringListProperty()
 
     def calcput(self):
         if self.name:
             self.searchname = self.name.upper()
-        limports = self.GetImportsFromInput(self.tests)
-        limports.extend(self.GetImportsFromInput(self.code))
+        ldependson = self.GetDependsOnFromInput(self.tests)
+        ldependson.extend(self.GetDependsOnFromInput(self.code))
         
-        self.imports = limports
-        
+        self.dependson = ldependson
         self.put()
+
+        for ldependedonfunction in self.GetDependsOn:   
+            if not ldependedonfunction.dependedonby:
+                ldependedonfunction.dependedonby = []
+            if not self.name in ldependedonfunction.dependedonby:
+                ldependedonfunction.dependedonby.append(self.name)
+            ldependedonfunction.calcput()
+                 
+#        for ldependsItem in ldependson:
+#            ldependedonfunction = self.GetByName(ldependsItem)
+#            if ldependedonfunction:
+#                if not ldependedonfunction.dependedonby:
+#                    ldependedonfunction.dependedonby = []
+#                if not self.name in ldependedonfunction.dependedonby:
+#                    ldependedonfunction.dependedonby.append(self.name)
+#                ldependedonfunction.calcput()
+
+    def calcdelete(self):
+        for ldependedonfunction in self.GetDependsOn:
+            if ldependedonfunction.dependedonby:
+                if not self.name in ldependedonfunction.dependedonby:
+                    ldependedonfunction.dependedonby.remove(self.name)
+                ldependedonfunction.calcput()
+               
+#        for ldependsItem in self.dependson:
+#            ldependedonfunction = self.GetByName(ldependsItem)
+#            if ldependedonfunction:
+#                if ldependedonfunction.dependedonby:
+#                    if not self.name in ldependedonfunction.dependedonby:
+#                        ldependedonfunction.dependedonby.remove(self.name)
+#                    ldependedonfunction.calcput()
+        self.delete()
         
     @classmethod
     def GetOrCreate(cls, aName, aUser):
-        retval = cls.all().filter("name =", aName).get()
+        retval = cls.GetByName(aName)
         if not retval:
             retval = cls(name = aName, creator = aUser, lastupdatedby = aUser)
             retval.calcput()
+        return retval
+    
+    @classmethod 
+    def GetByName(cls, aName):
+        retval = None
+        if aName:
+            retval = cls.all().filter("searchname =", aName.upper()).get()
         return retval
     
     @classmethod
@@ -99,12 +138,21 @@ class Function(polymodel.PolyModel):
                     raise Exception("Import '%s' not found." % (limportname))
     
     @property
-    def GetImports(self):
+    def GetDependsOn(self):
         retval = []
-        for limportname in self.imports:
-            limport = Function.all().filter("searchname =", limportname.upper()).get()
-            if limport:
-                retval.append(limport)
+        for ldependsonname in self.dependson:
+            ldependsOnFunction = Function.all().filter("searchname =", ldependsonname.upper()).get()
+            if ldependsOnFunction:
+                retval.append(ldependsOnFunction)
+        return retval
+        
+    @property
+    def GetDependedOnBy(self):
+        retval = []
+        for ldependedonbyname in self.dependedonby:
+            ldependedOnByFunction = Function.all().filter("searchname =", ldependedonbyname.upper()).get()
+            if ldependedOnByFunction:
+                retval.append(ldependedOnByFunction)
         return retval
         
     def AddImportsToDictionary(self, aDictionary):
@@ -187,12 +235,12 @@ class Function(polymodel.PolyModel):
         lfunctionrun.put()
     
     @classmethod
-    def GetImportsFromInput(cls, aInput):
+    def GetDependsOnFromInput(cls, aInput):
         if aInput:
-            limports = re.findall("{{(.*?)}}", aInput)
+            ldependson = re.findall("{{(.*?)}}", aInput)
         else:
-            limports = []
-        return limports
+            ldependson = []
+        return ldependson
     
 class FunctionRun(polymodel.PolyModel):
     function = db.ReferenceProperty(Function)

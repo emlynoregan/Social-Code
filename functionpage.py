@@ -23,7 +23,9 @@ class FunctionPage(webapp.RequestHandler):
             
         else:
             lloginurl = users.create_login_url(self.request.url)
-        
+
+        lerr = self.request.get("err", None)
+                
         lfunction = None
         lid = self.request.get("id", None)
         if lid:
@@ -39,6 +41,7 @@ class FunctionPage(webapp.RequestHandler):
             template_values['logouturl'] = llogouturl        
             template_values['loginurl'] = lloginurl
             template_values['function'] = lfunction
+            template_values['err'] = lerr
             template_values['functionruns'] = lfunction.Runs().fetch(20, 0)
                     
             path = os.path.join(os.path.dirname(__file__), "functionpage.html")
@@ -64,7 +67,7 @@ class FunctionPage(webapp.RequestHandler):
                     lfunction.calcput()
                     lfunction.RunTests(user)
                 elif lsubject == "Delete":
-                    db.delete(lfunction)
+                    lfunction.calcdelete()
                     lfinishurl = "/"
                     lfinishurl = util.SetQueryStringArg(lfinishurl, "err", "Function deleted")
             else:
