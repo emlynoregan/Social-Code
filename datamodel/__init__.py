@@ -123,19 +123,14 @@ class Function(polymodel.PolyModel):
     def Runs(self):
         return FunctionRun.all().filter("function =", self).order("-initiated")
     
-    def CheckImports(self):
-        if self.imports:
-            for limportname in self.imports:
-                limport = Function.all().filter("searchname =", limportname.upper()).get()
-                if limport:
-                    llatestRun = limport.LatestRun
-                    if llatestRun:
-                        if not llatestRun.success:
-                            raise Exception("Import '%s' fails: %s" % (limportname, llatestRun.errormessage))
-                    else:
-                        raise Exception("Import '%s' has never been run." % (limportname))
-                else:
-                    raise Exception("Import '%s' not found." % (limportname))
+    def CheckDependencies(self):
+        for ldependsOn in self.GetDependsOn:
+            llatestRun = ldependsOn.LatestRun
+            if llatestRun:
+                if not llatestRun.success:
+                    raise Exception("Import '%s' fails: %s" % (ldependsOn.name, llatestRun.errormessage))
+            else:
+                raise Exception("Import '%s' has never been run." % (ldependsOn.name))
     
     @property
     def GetDependsOn(self):
@@ -155,21 +150,19 @@ class Function(polymodel.PolyModel):
                 retval.append(ldependedOnByFunction)
         return retval
         
-    def AddImportsToDictionary(self, aDictionary):
-        for limportname in self.imports:
-            if not limportname in aDictionary:
-                limport = Function.all().filter("searchname =", limportname.upper()).get()
-                if limport:
-                    aDictionary[limportname] = limport
-                    aDictionary = limport.AddImportsToDictionary(aDictionary)
+    def AddDependsOnToDictionary(self, aDictionary):
+        for ldependson in self.GetDependsOn:
+            if not ldependson.searchname in aDictionary:
+                aDictionary[ldependson.searchname] = ldependson
+                aDictionary = ldependson.AddDependsOnToDictionary(aDictionary)
         return aDictionary
     
-    def GetImportsCode(self, aDictionary):
+    def GetDependsOnCode(self, aDictionary):
         retval = ""
         for lkey in aDictionary:
-            limport = aDictionary[lkey]
-            if limport.code:
-                retval += "\n\n" + limport.code
+            ldependson = aDictionary[lkey]
+            if ldependson.code:
+                retval += "\n\n" + ldependson.code
         return retval
     
     def RunTests(self, aInitiator):
@@ -195,12 +188,12 @@ class Function(polymodel.PolyModel):
             # "__builtins__":None, 
             lscope = {"__builtins__":None, "log":xlog, "check":xcheck, "str": str}
 
-            self.CheckImports()
+            self.CheckDependencies()
             
-            limportsDict = self.AddImportsToDictionary({})
+            limportsDict = self.AddDependsOnToDictionary({})
 
             if limportsDict:
-                limportsCode = self.GetImportsCode(limportsDict)
+                limportsCode = self.GetDependsOnCode(limportsDict)
             
                 try:
                     exec limportsCode in lscope
