@@ -54,6 +54,9 @@ class Function(polymodel.PolyModel):
 
     def calcdelete(self):
         self.RemoveSelfFromDependsOns()
+        
+        for lfunctionrun in self.Runs():
+            lfunctionrun.calcdelete()
                
         self.delete()
         
@@ -241,6 +244,12 @@ class FunctionRun(polymodel.PolyModel):
     success = db.BooleanProperty()
     errormessage = db.StringProperty()
 
+    def calcdelete(self):
+        for litem in self.LogItems:
+            litem.calcdelete()
+        
+        self.delete()
+
     @property
     def LogItems(self):
         return LogItem.all().filter("functionrun =", self).order("timestamp")
@@ -253,4 +262,7 @@ class LogItem(polymodel.PolyModel):
     functionrun = db.ReferenceProperty(FunctionRun)
     timestamp = db.DateTimeProperty(auto_now_add = True)
     message = db.StringProperty()
+    
+    def calcdelete(self):
+        self.delete()
     
