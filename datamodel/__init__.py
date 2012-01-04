@@ -199,7 +199,7 @@ class Function(polymodel.PolyModel):
                         raise Exception("Assert failed.")
                     
             # "__builtins__":None, 
-            lscope = {"__builtins__":None, "log":xlog, "check":xcheck, "str": str}
+            lscope = {"__builtins__":None, "log":xlog, "check":xcheck, "str": str, "False": False, "True": True}
 
             self.CheckDependencies()
             
