@@ -61,7 +61,19 @@ class FunctionPage(webapp.RequestHandler):
             if lfunction:
                 lsubject = self.request.get("subject", None)
                 
-                if lsubject == "Save and Run!":
+                if lsubject == "Clone this function":
+                    lnewFunctionName = self.request.get("newfunctionname", None)
+                    if not lnewFunctionName:
+                        raise Exception("You must enter a function name")
+                    
+                    lnewFunctionName = lnewFunctionName.strip()
+                    lnewFunction = lfunction.Clone(lnewFunctionName, user)
+                    if lnewFunction:
+                        lfinishurl = util.ClearQueryString(lfinishurl)
+                        lfinishurl = util.SetQueryStringArg(lfinishurl, "id", lnewFunction.key().id())                    
+                    else:
+                        lfinishurl = "/"
+                elif lsubject == "Save and Run!":
                     lfunction.code = self.request.get("functioncode")
                     lfunction.tests = self.request.get("functiontests")
                     lfunction.calcput()

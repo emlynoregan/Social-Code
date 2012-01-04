@@ -85,6 +85,17 @@ class Function(polymodel.PolyModel):
             retval.calcput()
             return retval
     
+    def Clone(self, aName, aUser):
+        retval = None
+        if self.NameExists(aName):
+            raise Exception("Name already exists")
+        else:
+            retval = self.__class__(name = aName, creator = aUser, lastupdatedby = aUser, searchname=aName.upper())
+            retval.code = self.code
+            retval.tests = self.tests
+            retval.calcput()
+            return retval
+
     @classmethod
     def GetFunctions(cls, aSearch):
         retval = cls.all()
